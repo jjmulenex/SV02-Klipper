@@ -24,7 +24,15 @@ All of these macros are in the printer.cfg in this repo
 ### Macros Used
 
 #### START_PRINT  - Macro to prepare and start a print
-Both Cura Orca use this macro. There is a `SLICER` param to define the extruder prep method.
+Both Cura and Orca use this macro. There is a `SLICER` param to define the extruder prep method.
+
+**Orca Settings** 
+
+![Orca Start Settings](_images/start-orca.png)
+
+**Cura Settings**
+
+![Cura Start Settings](_images/start-orca.png)
 
 To be more specific I needed to create a way to only load the filiment if Orca was used. In Orca settings we only define a tool change macro in the tool change macro section of settings. So each print would start without the filiment loaded. This part of the macro preloads the filament accordingly for any print sliced with Orca. 
 
@@ -133,6 +141,10 @@ I used the Change filament gcode sestion under printer settings to do the job. I
 Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
 
 **Note** Since this gcode is called before a filament change but not before.  No filament loading on start. Hince the Filament loading (Orca only) decision in the `START_PRINT` gcode to solve the loading problem.
+
+**Orca Settings**
+
+![Orca Change Filament](_images/change-orca.png)
 
 ##### Slicer gcode
 ```
