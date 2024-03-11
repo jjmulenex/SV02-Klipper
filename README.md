@@ -3,7 +3,15 @@ Klipper on the Sovol SV02 with Dual Extrusion (Orca and Cura)
 
 ### Introduction
 
-This guide details setting up Klipper on the Sovol SV02 for dual extrusion, allowing you to use both Orca and Cura slicers without modifying Cura's gcode. It prioritizes user experience (UX) by keeping the workflow familiar for my son while enabling me to transition to Orca.
+This guide details setting up Klipper on the Sovol SV02 for dual extrusion, allowing you to use both Orca and Cura slicers without modifying Cura's gcode.
+
+So in Orca I needed a way to change filiment but it's a bit different than Cura. You can set gcode for each filiment. So if you want to do it the same as Cura you would need to duplicate filaments and I am not sure that would work... it seemed like a bridge to far. 
+
+I used the Change filament gcode sestion under printer settings to do the job. It calls a `COMPARE_EXTRUDER` macro to compare the `current_extruder` to the `next_extruder` to determine if a different extruder is being called. If so call the `END_EXTRUDER` macro above. 
+
+Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
+
+**Note** Since this gcode is called before a filament change but not before.  No filament loading on start. Hince the Filament loading (Orca only) decision in the `START_PRINT` gcode to solve the loading problem.
 
 All of these macros are in the printer.cfg in this repo
 
@@ -22,8 +30,15 @@ All of these macros are in the printer.cfg in this repo
 
 
 ### Macros Used
+- [START_PRINT](#start_print)
+- [START_EXTRUDER](#start_extruder)
+- [END_EXTRUDER](#end_extruder)
+- [COMPARE_EXTRUDER](#compare_extruder-orca)
+- [PURGE_BUCKET](#purge_bucket-orca-only-for-now)
 
-#### START_PRINT  - Macro to prepare and start a print
+#### START_PRINT 
+
+Macro to prepare and start a print
 Both Cura and Orca use this macro. There is a `SLICER` param to define the extruder prep method.
 
 **Orca Settings** 
@@ -133,14 +148,8 @@ gcode:
   G90
   ```
 
-### Change Filament (Orca)
-So in Orca I needed a way to change filiment but it's a bit different than Cura. You can set gcode for each filiment. So if you want to do it the same as Cura you would need to duplicate filaments and I am not sure that would work... it seemed like a bridge to far. 
-
-I used the Change filament gcode sestion under printer settings to do the job. It calls a `COMPARE_EXTRUDER` macro to compare the `current_extruder` to the `next_extruder` to determine if a different extruder is being called. If so call the `END_EXTRUDER` macro above. 
-
-Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
-
-**Note** Since this gcode is called before a filament change but not before.  No filament loading on start. Hince the Filament loading (Orca only) decision in the `START_PRINT` gcode to solve the loading problem.
+### COMPARE_EXTRUDER (Orca)
+So in Orca I needed a way to change filiment but it's a bit different than Cura.
 
 **Orca Settings**
 
@@ -169,7 +178,7 @@ gcode:
   ```
 
 
-### Purge Bucket (Orca only, for now)
+### PURGE_BUCKET (Orca only, for now)
 
 I didnt not write this, but I can not remember where I got it. If someone knows who wrote this I will give attrubution. Its a replacement for the prime tower and seems to work well. So far I only call it in the compare extruder macro
 
