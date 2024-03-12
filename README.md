@@ -22,7 +22,7 @@ All of these macros are in the printer.cfg in this repo
 -   Consolidate code for efficiency.
 
 
-###  Printer Setup Slicer Setup
+###  Printer / Slicer
 
 -   Klipper on a Raspberry PI 3B
 -   BLTouch
