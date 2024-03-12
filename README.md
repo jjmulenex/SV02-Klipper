@@ -22,11 +22,13 @@ All of these macros are in the printer.cfg in this repo
 -   Consolidate code for efficiency.
 
 
-###  Printer Setup
+###  Printer Setup Slicer Setup
 
 -   Klipper on a Raspberry PI 3B
 -   BLTouch
 -   2 in 1 out Stock Hotend
+-   [Cura Settings](#cura-settings)
+-   [Orca Settings](#orca-settings)
 
 
 ### Macros Used
@@ -216,4 +218,67 @@ gcode:
  #Use Absolute Coordinates
  G90
 
+```
+
+### Cura Settings 
+***
+
+##### Printer Start gcode
+```
+; Start Klipper Macro
+START_PRINT EXTRUDER_TEMP={material_print_temperature_layer_0} BED_TEMP={material_bed_temperature_layer_0} START_EXTRUDER={initial_extruder_nr}
+```
+
+##### Printer End gcode
+
+```
+; machine end code >>
+END_PRINT
+; << machine end code
+```
+##### Left Extruder Start gcode
+```
+; extruder start code >>
+START_EXTRUDER EXTRUDER=0 EXTRUDER_TEMP={material_print_temperature}
+; << extruder start code
+```
+
+##### Left Extruder End gcode
+```
+; extruder 1 end code >>
+END_EXTRUDER
+; << extruder 1 end code
+M118 End Filiment Extruder T{extruder_nr}
+```
+
+##### Right Extruder End gcode
+```
+; extruder 2 end code >>
+START_EXTRUDER EXTRUDER=1 EXTRUDER_TEMP={material_print_temperature}
+; << extruder 2 end code
+```
+
+##### Right Extruder End gcode
+```
+; extruder 2 end code >>
+END_EXTRUDER	
+; << extruder 2 end code
+```
+
+### Orca Settings 
+***
+
+##### Machine Start gcode
+```
+START_PRINT EXTRUDER_TEMP=[first_layer_temperature] BED_TEMP=[first_layer_bed_temperature] START_EXTRUDER=[initial_extruder]  PRINT_TYPE="orca" 
+```
+
+##### Machine End gcode
+```
+END_PRINT
+```
+
+##### Change Filament gcode
+```
+COMPARE_EXTRUDER CURRENT_EXTRUDER=[current_extruder] NEXT_EXTRUDER=[next_extruder]
 ```
