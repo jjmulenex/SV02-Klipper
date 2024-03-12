@@ -7,7 +7,7 @@ This guide details setting up Klipper on the Sovol SV02 for dual extrusion, allo
 
 So in Orca I needed a way to change filiment but it's a bit different than Cura. You can set gcode for each filiment. So if you want to do it the same as Cura you would need to duplicate filaments and I am not sure that would work... it seemed like a bridge to far. 
 
-I used the Change filament gcode sestion under printer settings to do the job. It calls a `COMPARE_EXTRUDER` macro to compare the `current_extruder` to the `next_extruder` to determine if a different extruder is being called. If so call the `END_EXTRUDER` macro above. 
+I used the Change filament gcode sestion under printer settings to do the job. It calls a `COMPARE_EXTRUDER` macro to compare the `current_extruder` to the `next_extruder` to determine if a different extruder is being called. If so call the `END_EXTRUDER` macro. 
 
 Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
 
