@@ -3,13 +3,13 @@ Klipper on the Sovol SV02 with Dual Extrusion (Orca and Cura)
 
 ### Introduction
 
-This guide details setting up Klipper on the Sovol SV02 for dual extrusion, allowing you to use both Orca and Cura slicers without modifying Cura's gcode.
+This guide details setting up Klipper on the Sovol SV02 for dual extrusion, allowing you to use both Orca and Cura slicers seamlessly.
 
-So in Orca I needed a way to change filiment but it's a bit different than Cura. You can set gcode for each filiment. So if you want to do it the same as Cura you would need to duplicate filaments and I am not sure that would work... it seemed like a bridge to far. 
+Orca's filament change differs from Cura. While Cura allows extruder start/end gcode, Orca uses gcode per filament. Duplicating filaments in Orca to mimic Cura seems impractical.
 
-I used the Change filament gcode sestion under printer settings to do the job. It calls a `COMPARE_EXTRUDER` macro to compare the `current_extruder` to the `next_extruder` to determine if a different extruder is being called. If so call the `END_EXTRUDER` macro. 
+I used the Change filament gcode sestion under printer settings to do the job. This utilizes a macro named `COMPARE_EXTRUDER` to verify a switch between extruders is happening. If a new extruder is indeed selected (`current_extruder `doesn't match `next_extruder`), the `END_EXTRUDER` macro is called to perform any necessary actions for the previous extruder before switching.
 
-Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
+I also created a Macro to hold a variable that I could use to detect if the extruder had been loaded yet. The first time Cura runs `START_EXTRUDER` the macro `FILAMENT_LOADED` is called and the variable_filament_loaded is set to True only the first time that Cura calls the extruder start gcode. This allows the loading filament at the start of the print and call the `LINE_PURGE` macro from KAMP. The next time Then switches to the `next_extruder` (only in Orca) and uses a `purge_bucket` macro to flush the nozzle
 
 **Note** Since this gcode is called before a filament change but not before.  No filament loading on start. Hince the Filament loading (Orca only) decision in the `START_PRINT` gcode to solve the loading problem.
 
@@ -64,50 +64,47 @@ START_PRINT EXTRUDER_TEMP=[first_layer_temperature] BED_TEMP=[first_layer_bed_te
 ```
 [gcode_macro START_PRINT]  ; Macro to prepare and start a print
 gcode:
-# Set default values (optional, adjust in Klipper config)
-{% set BED_TEMP = params.BED_TEMP|default(50)|float %}
-{% set EXTRUDER_TEMP = params.EXTRUDER_TEMP|default(200)|float %}
-{% set INITIAL_EXTRUDER = params.START_EXTRUDER|default(0)|int %}
-{% set SLICER = params.PRINT_TYPE|default("default")|string %}
+  # Set default values (optional, adjust in Klipper config)
+  {% set BED_TEMP = params.BED_TEMP|default(50)|float %}
+  {% set EXTRUDER_TEMP = params.EXTRUDER_TEMP|default(200)|float %}
+  {% set INITIAL_EXTRUDER = params.START_EXTRUDER|default(0)|int %}
+  {% set SLICER = params.PRINT_TYPE|default("default")|string %}
+  
+  # Reset filament loaded flag
+  SET_GCODE_VARIABLE MACRO=FILAMENT_LOADED VARIABLE=filament_loaded VALUE=False
 
-# Units and fans
-G21 ; mm units
-M107 ; Turn off fans
+  # Units and fans
+  G21 ; mm units
+  M107 ; Turn off fans
 
-# Home and heat
-G28 ; Home axes
-M118 Bed: {BED_TEMP} Extruder: {EXTRUDER_TEMP}
-M140 S{BED_TEMP} ; Heat bed
-M109 S{EXTRUDER_TEMP} ; Heat extruder
-M190 S{BED_TEMP} ; Wait for bed temp
+  # Home and heat
+  G28 ; Home axes
+  M118 Bed: {BED_TEMP} Extruder: {EXTRUDER_TEMP}
+  M140 S{BED_TEMP} ; Heat bed
+  M109 S{EXTRUDER_TEMP} ; Heat extruder
+  M190 S{BED_TEMP} ; Wait for bed temp
 
-# Bed mesh calibration (if defined elsewhere)
-BED_MESH_CALIBRATE
+  # Bed mesh calibration (if defined elsewhere)
+  BED_MESH_CALIBRATE
 
-# Select initial extruder
-T{INITIAL_EXTRUDER}
+  # Select initial extruder
+  T{INITIAL_EXTRUDER}
 
-# Filament loading (Orca only)
-{% if SLICER == "orca" %}
-  M118 Loading filament for Orca
-  M83 ; Relative extrusion mode
-  G1 Z5 F240 ; Move to Z height
-  G1 X10 Y20 F3000 ; Move to position
-  G1 E93 F2000 ; Extrude filament (relative)
-  G92 E0 ; Reset to absolute mode
-{% else %}
-  M118 You are using CURA, Nothing to do... Continue
-  # No specific actions for Cura (placeholder)
-{% endif %}
-
-# Pre-prime
-G1 F3000 X5 Y10 Z0.2 ; Move to prime position
-G92 E0 ; Reset extrusion
-
-# Final prime
-G1 F600 X160 E5 ; Prime nozzle
-G1 F5000 X180 ; Wipe
-G92 E0 ; Reset extrusion
+  # Filament loading (Orca only)
+  {% if SLICER == "orca" %}
+    M118 Loading filament for Orca
+    LOAD_FILAMENT
+    # M83 ; Relative extrusion mode
+    # G1 Z5 F240 ; Move to Z height
+    # G1 X10 Y20 F3000 ; Move to position
+    # G1 E93 F2000 ; Extrude filament (relative)
+    # G92 E0 ; Reset to absolute mode
+    LINE_PURGE
+  {% else %}
+    M118 You are using CURA, Nothing to do... Continue
+    # No specific actions for Cura (placeholder)
+  {% endif %}
+  
 ```  
 
 #### START_EXTRUDER
